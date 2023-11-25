@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+// Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
+
 class MCP23S17
 {
   public:
@@ -12,7 +14,7 @@ class MCP23S17
       B = 1
     };
 
-    enum class DIRECTION : bool
+    enum class DIRECTION
     {
       OUTPUT  = 0,
       INPUT   = 1
@@ -65,37 +67,26 @@ class MCP23S17
       OLATA     = 0x14,
       OLATB     = 0x15
     };
-
-    const uint8_t CLIENT_ADDRESS_HEADER = 0x40;
   
   private:
-    uint8_t m_hardware_address;
-    uint8_t m_opcode;
-    bool    m_IOCON_BANK = 0;
+    const uint8_t CLIENT_ADDRESS_HEADER = 0x40;
+    const uint8_t m_hardware_address    = 0x00;
+          bool    m_IOCON_BANK          = 0;
 
   private:
-    uint8_t control_byte  (OPERATION op) const;
-    void    mcp_write     (REGISTER reg, PORT port, uint8_t data);
-    uint8_t mcp_read      (REGISTER reg, PORT port);
-    uint8_t bank_address  (REGISTER reg, PORT port);
+    uint8_t control_byte      (OPERATION op)            const;
+    uint8_t register_address  (REGISTER reg, PORT port) const;
+    uint8_t mcp_xfer          (OPERATION op, REGISTER reg, PORT port, uint8_t data = 0x00);
 
   protected:
     virtual void spi_xfer (uint8_t* rxd, uint8_t* txd, unsigned length) = 0;
 
   public:
-    MCP23S17 (uint8_t hw_addr_bits);
+    MCP23S17 (uint8_t hardware_address);
 
-    // Setter
-    void hardware_address (uint8_t hw_addr_bits);
-
-    // Getter
-    uint8_t hardware_address  () const;
-    uint8_t opcode            () const;
-
-    void    write     (PORT port, uint8_t data);
-    uint8_t read      (PORT port);
     void    direction (PORT port, DIRECTION direction);
-    void    direction (PORT port, uint8_t pin, DIRECTION direction);
+    uint8_t read      (PORT port);
+    void    write     (PORT port, uint8_t data);    
 };
 
 #endif
