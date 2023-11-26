@@ -6,25 +6,48 @@
 #include <pigpio.h>
 
 #include "../MCP23S17.h"
+#include "../../AikaPi/AikaPi.h"
 
 // compile with
 // g++ -Wall -pthread test.cpp -o test -lpigpio -lrt
 
+// class MCP23S17_pigpio : public MCP23S17
+// {
+//   private:
+//     int m_spi_fd = 0;
+
+//   private:
+//     virtual void spi_xfer (uint8_t* rxd, uint8_t* txd, unsigned length)
+//     {
+//       spiXfer (m_spi_fd, reinterpret_cast<char*>(txd), reinterpret_cast<char*>(rxd), length);
+//     }
+  
+//   public:
+//     MCP23S17_pigpio (uint8_t hw_addr_bits) : MCP23S17 (hw_addr_bits)
+//     {
+//       m_spi_fd = spiOpen (0, 100'000, 0);
+//     }
+// };
+
+// compile with
+// g++ test.cpp ../../AikaPi/AikaPi.cpp -o test
+
 class MCP23S17_pigpio : public MCP23S17
 {
   private:
-    int m_spi_fd = 0;
+    AikaPi::SPI_BB m_spi_bb;
 
-  private:
-    virtual void spi_xfer (uint8_t* rxd, uint8_t* txd, unsigned length)
-    {
-      spiXfer (m_spi_fd, reinterpret_cast<char*>(txd), reinterpret_cast<char*>(rxd), length);
-    }
-  
   public:
-    MCP23S17_pigpio (uint8_t hw_addr_bits) : MCP23S17 (hw_addr_bits)
+    MCP23S17_pigpio (int CS, int MISO, int MOSI, int SCLK, double baud, uint8_t hw_addr_bits)
+    : MCP23S17 (hw_addr_bits),
+      m_spi_bb (AikaPi::SPI_BB (CS, MISO, MOSI, SCLK, baud))
     {
-      m_spi_fd = spiOpen (0, 100'000, 0);
+
+    }
+
+    void spi_xfer (uint8_t* rxd, uint8_t* txd, unsigned length)
+    {
+      m_spi_bb.xfer ((char*)rxd, (char*)txd, length);
     }
 };
 
